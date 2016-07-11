@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GameLibrary.Tests.API;
 using NUnit.Framework;
 
-namespace GameLibrary.Tests
+namespace GameLibrary.Tests.Hotswap
 {
 	[TestFixture]
 	public class TestHotswapCSharpScript : TestBase

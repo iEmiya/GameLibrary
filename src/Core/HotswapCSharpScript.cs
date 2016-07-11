@@ -227,6 +227,26 @@ namespace GameLibrary
 		}
 
 		#endregion
+		#region ReloadScript
+
+		public void ReloadScript()
+		{
+			foreach (var d in _watchers)
+			{
+				var watcher = d.Key;
+				var attributes = d.Value;
+
+				watcher.EnableRaisingEvents = false;
+				foreach (var attr in attributes)
+				{
+					ReloadClassFileSource(attr);
+				}
+				watcher.EnableRaisingEvents = true;
+			}
+			
+		}
+
+		#endregion
 		#region CreateInstance
 
 		public TSub CreateInstance<TSub>(params object[] arguments)

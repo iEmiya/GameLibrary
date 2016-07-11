@@ -157,17 +157,17 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="TestBase.cs" />
-    <Compile Include="TestDoubleImplObject.cs" />
-    <Compile Include="TestICrossDomainObject.cs" />
-    <Compile Include="TestMultiImplObject.cs" />
-    <Compile Include="TestOverrideImplObject.cs" />
-    <Compile Include="TestSingleImplObject.cs" />
+    <Compile Include="Hotswap\TestDoubleImplObject.cs" />
+    <Compile Include="Hotswap\TestICrossDomainObject.cs" />
+    <Compile Include="Hotswap\TestMultiImplObject.cs" />
+    <Compile Include="Hotswap\TestOverrideImplObject.cs" />
+    <Compile Include="Hotswap\TestSingleImplObject.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripts\SingleImplObject.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="TestHotswapCSharpScript.cs" />
+    <Compile Include="Hotswap\TestHotswapCSharpScript.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

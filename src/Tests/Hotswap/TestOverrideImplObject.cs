@@ -1,21 +1,21 @@
 ﻿using System;
 using System.IO;
-using System.Threading.Tasks;
 using GameLibrary.Tests.API;
 using NUnit.Framework;
 
-namespace GameLibrary.Tests
+namespace GameLibrary.Tests.Hotswap
 {
 	[TestFixture]
 	public class TestOverrideImplObject : TestBase
 	{
-		[Test, Timeout(60000)]
+		[Test]
 		public void CreateInstance()
 		{
+			var ticks = DateTime.UtcNow.Ticks;
 			IOverrideObject d;
 			using (var instance = new HotswapCSharpScript().Load<TestOverrideImplObject>())
 			{
-				var ticks = DateTime.UtcNow.Ticks;
+				
 				var classFileSource = Path.GetFullPath(OverrideImplObject.ClassFileSource);
 				File.WriteAllText(classFileSource,
 @"using System;
@@ -38,27 +38,22 @@ public class OverrideImplObject : IOverrideObject
 		}
 	}
 ");
-
-				while (true)
-				{
-					d = instance.CreateInstance<IOverrideObject>();
-					if (d.Ticks == ticks) break;
-					Task.Delay(1000);
-				}
-
+				instance.ReloadScript();
+				d = instance.CreateInstance<IOverrideObject>();
 			}
 			Assert.IsNotNull(d);
 			Assert.IsInstanceOf<IOverrideObject>(d);
+			Assert.That(d.Ticks, Is.EqualTo(ticks));
 			Assert.Throws<NotImplementedException>(() => d.OverrideMethod(null));
 		}
 
-		[Test, Timeout(60000)]
+		[Test]
 		public void CreateInstanceAndImplMethod()
 		{
+			var ticks = DateTime.UtcNow.Ticks;
 			IOverrideObject d;
 			using (var instance = new HotswapCSharpScript().Load<TestOverrideImplObject>())
 			{
-				var ticks = DateTime.UtcNow.Ticks;
 				var classFileSource = Path.GetFullPath(OverrideImplObject.ClassFileSource);
 				File.WriteAllText(classFileSource,
 @"using System;
@@ -81,17 +76,12 @@ public class OverrideImplObject : IOverrideObject
 		}
 	}
 ");
-
-				while (true)
-				{
-					d = instance.CreateInstance<IOverrideObject>();
-					if (d.Ticks == ticks) break;
-					Task.Delay(1000);
-				}
-
+				instance.ReloadScript();
+				d = instance.CreateInstance<IOverrideObject>();
 			}
 			Assert.IsNotNull(d);
 			Assert.IsInstanceOf<IOverrideObject>(d);
+			Assert.That(d.Ticks, Is.EqualTo(ticks));
 			var uuid = Guid.NewGuid().ToString("D");
 			var it = d.OverrideMethod(uuid);
 			Assert.That(it, Is.EqualTo(uuid));

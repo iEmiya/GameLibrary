@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using GameLibrary.Tests.Hotswap;
 using NUnit.Framework;
 
 namespace GameLibrary.Tests
