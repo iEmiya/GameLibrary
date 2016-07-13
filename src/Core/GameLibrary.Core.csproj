@@ -34,6 +34,7 @@
       <Link>Properties\AssemblySharedInfo.cs</Link>
     </Compile>
     <Compile Include="HotswapCSharpScript.cs" />
+    <Compile Include="MuiltiTaskManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeExtensions.cs" />
   </ItemGroup>

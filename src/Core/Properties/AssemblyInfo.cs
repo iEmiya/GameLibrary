@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("GameLibrary")]
@@ -7,3 +8,5 @@ using System.Runtime.InteropServices;
 [assembly: Guid("e32e748b-7776-4cbf-9afb-8da6b59516fb")]
 
 [assembly: AssemblyFileVersion("1.0.0.0")]
+
+[assembly: InternalsVisibleTo("GameLibrary.Tests")]
