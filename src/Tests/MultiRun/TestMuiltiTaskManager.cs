@@ -262,6 +262,73 @@ namespace GameLibrary.Tests.MultiRun
 			GC.Collect();
 		}
 
+		[Test, Category("MuiltiTask"), Category("Performance")]
+		public void LoopMobAttackPerformance([Values(10, 100, 1000, 10000, 100000)] int step)
+		{
+			var tasks = new MobAttack[step];
+
+			var sw = Stopwatch.StartNew();
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i] = new MobAttack(5, 100);
+				it.Activate();
+			}
+			while (tasks.Any(x => x.Activated)) Thread.Sleep(0);
+			sw.Stop();
+
+			double totalMilliseconds = 0;
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i];
+				Assert.IsFalse(it.Activated);
+				totalMilliseconds += it.begin.Elapsed.TotalMilliseconds;
+			}
+
+			Console.WriteLine("Wait...");
+			Console.WriteLine($"total: {sw.Elapsed.TotalMilliseconds:#,##0.00000000} ms");
+			Console.WriteLine($"  avg: {sw.Elapsed.TotalMilliseconds / step:#,##0.00000000} ms");
+			Console.WriteLine("Game...");
+			Console.WriteLine($"total: {totalMilliseconds:#,##0.00000000} ms");
+			Console.WriteLine($"  avg: {totalMilliseconds / step:#,##0.00000000} ms");
+			GC.Collect();
+		}
+
+		[Test, Category("MuiltiTask"), Category("Performance")]
+		public void LoopPoolMobAttackPerformance([Values(10, 100, 1000, 10000, 100000)] int step)
+		{
+			var tasks = new MobAttack[step];
+			var pool = new MuiltiTaskManager[4];
+			for (int i = 0; i < pool.Length; i++)
+			{
+				pool[i] = new MuiltiTaskManager();
+			}
+
+			var sw = Stopwatch.StartNew();
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i] = new MobAttack(5, 100);
+				it.Activate(pool[i % pool.Length]);
+			}
+			while (tasks.Any(x => x.Activated)) Thread.Sleep(0);
+			sw.Stop();
+
+			double totalMilliseconds = 0;
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i];
+				Assert.IsFalse(it.Activated);
+				totalMilliseconds += it.begin.Elapsed.TotalMilliseconds;
+			}
+
+			Console.WriteLine("Wait...");
+			Console.WriteLine($"total: {sw.Elapsed.TotalMilliseconds:#,##0.00000000} ms");
+			Console.WriteLine($"  avg: {sw.Elapsed.TotalMilliseconds / step:#,##0.00000000} ms");
+			Console.WriteLine("Game...");
+			Console.WriteLine($"total: {totalMilliseconds:#,##0.00000000} ms");
+			Console.WriteLine($"  avg: {totalMilliseconds / step:#,##0.00000000} ms");
+			GC.Collect();
+		}
+
 		class MyRunTask : MultiRunTask
 		{
 			private double? _p;
@@ -332,6 +399,31 @@ namespace GameLibrary.Tests.MultiRun
 				if (this.myTimer == null) return;
 				this.myTimer.Dispose();
 				this.myTimer = null;
+			}
+		}
+
+		class MobAttack : MultiRunTask
+		{
+			private int _damage;
+
+			public Stopwatch begin;
+
+			public MobAttack(int aDelay, int damage)
+			{
+				this.dueTime = 0;
+				this.period = aDelay;
+				_damage = damage;
+				this.begin = Stopwatch.StartNew();
+			}
+
+			public override void CallBack()
+			{
+				_damage -= 5;
+				if (_damage <= 0)
+				{
+					begin.Stop();
+					this.Deactivate();
+				}
 			}
 		}
 	}

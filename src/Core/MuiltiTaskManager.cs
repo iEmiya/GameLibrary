@@ -91,7 +91,7 @@ namespace GameLibrary
 
 		private void Execute()
 		{
-			MultiRunTask t;
+			MultiRunTask t, tmp;
 			while (_isRun)
 			{
 				if (_activated || !_lock.Wait(5))
@@ -109,7 +109,10 @@ namespace GameLibrary
 
 				while (_addedTasks.TryDequeue(out t))
 				{
-					t.priority = ++elapsedTicks + t.dueTime;
+					do
+					{
+						t.priority = ++elapsedTicks + t.dueTime;
+					} while (_tasksCollection.TryGetValue(t.priority, out tmp));
 					_tasksCollection.Add(t.priority, t);
 					if (0 == --limitation) break;
 				}
