@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NET_VERSION_4_5</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -33,7 +33,6 @@
     <Compile Include="..\AssemblySharedInfo.cs">
       <Link>Properties\AssemblySharedInfo.cs</Link>
     </Compile>
-    <Compile Include="HotswapClassAttribute.cs" />
     <Compile Include="HotswapCSharpScript.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeExtensions.cs" />
