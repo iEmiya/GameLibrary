@@ -195,6 +195,73 @@ namespace GameLibrary.Tests.MultiRun
 			GC.Collect();
 		}
 
+		[Test, Category("Obsolete"), Category("Performance")]
+		public void LoopObsoletePerformance([Values(10, 100, 1000, 10000, 100000, 1000000, 10000000)] int step)
+		{
+			var tasks = new MyRunTaskObsolete[step];
+
+			var sw = Stopwatch.StartNew();
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i] = new MyRunTaskObsolete();
+				it.Activate();
+			}
+			while (tasks.Any(x => x.Activated())) Thread.Sleep(0);
+			sw.Stop();
+
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i];
+				Assert.IsFalse(it.Activated());
+				Assert.IsTrue(it.Done);
+			}
+
+			Console.WriteLine("Wait...");
+			Console.WriteLine($"total: {sw.Elapsed.TotalMilliseconds:#,##0.00000000} ms");
+			Console.WriteLine($"  avg: {sw.Elapsed.TotalMilliseconds / step:#,##0.00000000} ms");
+			GC.Collect();
+		}
+
+		[Test, Category("Obsolete"), Category("DotMemoryUnit"), DotMemoryUnit(CollectAllocations = true)]
+		public void LoopObsoleteDotMemoryUnit([Values(10, 100, 1000, 10000, 100000)] int step)
+		{
+			var tasks = new MyRunTaskObsolete[step];
+
+			var memoryPoint1 = dotMemory.Check();
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i] = new MyRunTaskObsolete();
+				it.Activate();
+			}
+			while (tasks.Any(x => x.Activated())) Thread.Sleep(0);
+			var memoryPoint2 = dotMemory.Check(memory =>
+			{
+				var t = memory.GetTrafficFrom(memoryPoint1);
+
+				Console.WriteLine("Wait...");
+				Console.WriteLine("Total:");
+				Console.WriteLine($" AllocatedMemory: ObjectsCount={t.AllocatedMemory.ObjectsCount:#,##0.00}; SizeInBytes={t.AllocatedMemory.SizeInBytes:#,##0.00}");
+				Console.WriteLine($" CollectedMemory: ObjectsCount={t.CollectedMemory.ObjectsCount:#,##0.00}; SizeInBytes={t.CollectedMemory.SizeInBytes:#,##0.00}");
+				Console.WriteLine($"DifferenceMemory: ObjectsCount={t.AllocatedMemory.ObjectsCount - t.CollectedMemory.ObjectsCount:#,##0.00}; SizeInBytes={t.AllocatedMemory.SizeInBytes - t.CollectedMemory.SizeInBytes:#,##0.00}");
+				Console.WriteLine();
+
+				Console.WriteLine("Avg:");
+				Console.WriteLine($" AllocatedMemory: ObjectsCount~{1d * t.AllocatedMemory.ObjectsCount / step:#,##0.00}; SizeInBytes~{1d * t.AllocatedMemory.SizeInBytes / step:#,##0.00}");
+				Console.WriteLine($" CollectedMemory: ObjectsCount~{1d * t.CollectedMemory.ObjectsCount / step:#,##0.00}; SizeInBytes~{1d * t.CollectedMemory.SizeInBytes / step:#,##0.00}");
+				Console.WriteLine($"DifferenceMemory: ObjectsCount~{(1d * t.AllocatedMemory.ObjectsCount - t.CollectedMemory.ObjectsCount) / step:#,##0.00}; SizeInBytes~{(1d * t.AllocatedMemory.SizeInBytes - t.CollectedMemory.SizeInBytes) / step:#,##0.00}");
+				Console.WriteLine();
+			});
+
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i];
+				Assert.IsFalse(it.Activated());
+				Assert.IsTrue(it.Done);
+			}
+
+			GC.Collect();
+		}
+
 		class MyRunTask : MultiRunTask
 		{
 			private double? _p;
@@ -207,6 +274,64 @@ namespace GameLibrary.Tests.MultiRun
 			{
 				_p = Math.Pow(Math.PI, Math.E);
 				this.Deactivate();
+			}
+		}
+
+		[Obsolete]
+		class MyRunTaskObsolete : MultiRunTaskObsolete
+		{
+			private double? _p;
+
+			public MyRunTaskObsolete() : base(0, 50) { }
+
+			public bool Done => _p.HasValue;
+
+			public override void CallBack(object o)
+			{
+				_p = Math.Pow(Math.PI, Math.E);
+				this.Deactivate();
+			}
+		}
+
+		[Obsolete]
+		class MultiRunTaskObsolete
+		{
+			private Timer myTimer;
+			public int dueTime;
+			public int period;
+			public delegate void func();
+			public func Func;
+
+			public MultiRunTaskObsolete()
+			{
+			}
+
+			public MultiRunTaskObsolete(int dueTime, int period)
+			{
+				this.dueTime = dueTime;
+				this.period = period;
+			}
+
+			public virtual void CallBack(object o)
+			{
+				if (Func != null) Func.Invoke();
+			}
+
+			public bool Activated()
+			{
+				if (this.myTimer != null) return true; return false;
+			}
+
+			public void Activate()
+			{
+				this.myTimer = new Timer(new TimerCallback(this.CallBack), null, this.dueTime, this.period);
+			}
+
+			public virtual void Deactivate()
+			{
+				if (this.myTimer == null) return;
+				this.myTimer.Dispose();
+				this.myTimer = null;
 			}
 		}
 	}
