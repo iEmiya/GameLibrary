@@ -31,7 +31,7 @@ namespace GameLibrary.Tests.MultiRun
 		}
 
 		[Test, Category("MuiltiTask"), Category("Performance")]
-		public void LoopNativePerformance([Values(10, 100, 1000, 10000, 100000)] int step)
+		public void LoopNativePerformance([Values(10, 100, 1000, 10000, 100000, 1000000, 10000000)] int step)
 		{
 			var tasks = new MyRunTask[step];
 
@@ -58,7 +58,7 @@ namespace GameLibrary.Tests.MultiRun
 		}
 
 		[Test, Category("MuiltiTask"), Category("Performance")]
-		public void LoopMuiltiTaskPerformance([Values(10, 100, 1000, 10000, 100000)] int step)
+		public void LoopMuiltiTaskPerformance([Values(10, 100, 1000, 10000, 100000, 1000000, 10000000)] int step)
 		{
 			var tasks = new MyRunTask[step];
 
@@ -160,6 +160,38 @@ namespace GameLibrary.Tests.MultiRun
 				Assert.IsTrue(it.Done);
 			}
 
+			GC.Collect();
+		}
+
+		[Test, Category("MuiltiTask"), Category("Performance")]
+		public void LoopMuiltiTaskPoolPerformance([Values(10, 100, 1000, 10000, 100000, 1000000, 10000000)] int step)
+		{
+			var tasks = new MyRunTask[step];
+			var pool = new MuiltiTaskManager[4];
+			for (int i = 0; i < pool.Length; i++)
+			{
+				pool[i] = new MuiltiTaskManager();
+			}
+
+			var sw = Stopwatch.StartNew();
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i] = new MyRunTask();
+				it.Activate(pool[i % pool.Length]);
+			}
+			while (tasks.Any(x => x.Activated)) Thread.Sleep(0);
+			sw.Stop();
+
+			for (int i = 0; i < step; i++)
+			{
+				var it = tasks[i];
+				Assert.IsFalse(it.Activated);
+				Assert.IsTrue(it.Done);
+			}
+
+			Console.WriteLine("Wait...");
+			Console.WriteLine($"total: {sw.Elapsed.TotalMilliseconds:#,##0.00000000} ms");
+			Console.WriteLine($"  avg: {sw.Elapsed.TotalMilliseconds / step:#,##0.00000000} ms");
 			GC.Collect();
 		}
 
